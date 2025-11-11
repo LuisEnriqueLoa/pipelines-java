@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: "windows-latets"
 
 steps:
 - task: Maven@3
