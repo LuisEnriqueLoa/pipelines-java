@@ -4,16 +4,63 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  - main 
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+stages:
+  - stage: Build
+    displayName: 'Build Stage'
+    jobs:
+    - job: BuildJob
+      displayName: 'Build Job'
+      steps:
+      - script: | 
+          echo "Restoring project dependencies..."
+        displayName: 'Restore dependencies'
+      - script: | 
+          echo "'Running unit tests..."
+        displayName: 'Run unit tests'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - stage: Test
+    displayName: 'Test Stage'
+    dependsOn: Build
+    isSkippable: false
+    jobs:
+    - job: TestJob
+      displayName: 'Test Job'
+      steps:
+        - script: |
+            echo "Running unit test..."
+          displayName: 'Run unit tests'
+
+  - stage: DeployToStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: Test
+    jobs:
+      - job: DeployStagingJob
+        displayName: 'Desploy to Staging Job'
+        pool: 
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              echo "Buils staging job..."
+            displayName: 'Build and deploy to staging'
+
+      - job: DeployStagingJobWithValidation
+        pool: server
+        timeoutInMinutes: 4320 
+        displayName: 'Deploy to Staging Job'
+        steps:
+          - task: ManualValidation@1
+            timeoutInMinutes: 1440
+            inputs:
+              notifyUsers: luisloa.7913@gmail.com
+              instructions: 'Por favor valida la etapa de configuración y resumen'
+              onTimeout: 'resume'
+
+
+
+
+
