@@ -1,4 +1,4 @@
-(https://dev.azure.com/luisloa26/first-pipeline-java/_apis/build/status%2FLuisEnriqueLoa.pipelines-java%20(16)?branchName=main)](https://dev.azure.com/luisloa26/first-pipeline-java/_build/latest?definitionId=16&branchName=main)
+[![Build Status](https://dev.azure.com/luisloa26/first-pipeline-java/_apis/build/status%2FLuisEnriqueLoa.pipelines-java%20(16)?branchName=main)](https://dev.azure.com/luisloa26/first-pipeline-java/_build/latest?definitionId=16&branchName=main)
 
 # Contributing
 
