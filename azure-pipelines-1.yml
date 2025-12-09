@@ -11,7 +11,7 @@ pool:
 
 variables:
   mvnOpts: '-B -Dmaven.test.failure.ignore=false'
-  jdkVersion: '17'
+  jdkVersion: '1.17'
 
 stages:
   - stage: Build
@@ -21,37 +21,39 @@ stages:
       displayName: 'Build Job'
       steps:
 
+        - task: JavaToolInstaller@0
+          displayName: 'Usar JDK 17 preinstalado'
+          inputs:
+            versionSpec: '17'
+            jdkArchitectureOption: 'x64'
+            jdkSourceOption: 'PreInstalled'
+
         - task: Bash@3
+          displayName: 'Diagnóstico Java/Maven'
           inputs:
             targetType: 'inline'
             script: |
               echo "JAVA_HOME: $JAVA_HOME"
               java -version
+              mvn -version
               
-        #Task opcional si se requiere seleccionar el JDK
-        - task: JavaToolInstaller@0
-          displayName: 'Instalar JDK'
-          inputs:
-            versionSpec: '$(jdkVersion)'
-            jdkArchitectureOption: x64
-            jdkSourceOption: PreInstalled
-
         - task: Maven@4
+          displayName: 'Build y pruebas'
           inputs:
             mavenPomFile: 'pom.xml'
             goals: 'clean package'
             options: '$(mvnOpts)'
             publishJUnitResults: true
+            testResultsFiles: '**/surefire-reports/TEST-*.xml'
             javaHomeOption: 'JDKVersion'
             jdkVersionOption: '$(jdkVersion)'
             mavenVersionOption: 'Default'
-            testResultsFiles: '**/surefire-reports/TEST-*.xml'
         
         - task: PublishBuildArtifacts@1
           displayName: 'Publicar Artefacto'
           inputs:
-            PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
-            ArtifactName: 'drop'
+            pathToPublish: '$(System.DefaultWorkingDirectory)/target'
+            artifactName: 'drop'
             publishLocation: 'Container'
 
 #  - stage: Test
