@@ -9,56 +9,79 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  mvnOpts: '-B -Dmaven.test.failure.ignore=false'
+  jdkVersion: '1.11'
+
 stages:
   - stage: Build
-    displayName: 'Build Stage'
+    displayName: 'Build'
     jobs:
     - job: BuildJob
       displayName: 'Build Job'
       steps:
-      - script: | 
-          echo "Restoring project dependencies..."
-        displayName: 'Restore dependencies'
-      - script: | 
-          echo "'Running unit tests..."
-        displayName: 'Run unit tests'
+        #Task opcional si se requiere seleccionar el JDK
+        - task: JavaToolInstaller@0
+          displayName: 'Instalar JDK'
+          inputs:
+            versionSpec: '$(jdkVersion)'
+            jdkArchitectureOption: x64
+            jdkSourceOption: PreInstalled
 
-  - stage: Test
-    displayName: 'Test Stage'
-    dependsOn: Build
-    isSkippable: false
-    jobs:
-    - job: TestJob
-      displayName: 'Test Job'
-      steps:
-        - script: |
-            echo "Running unit test..."
-          displayName: 'Run unit tests'
+        - task: Maven@4
+          inputs:
+            mavenPomFile: 'pom.xml'
+            goals: 'clean package'
+            options: '$(mvnOpts)'
+            publishJUnitResults: true
+            javaHomeOption: 'JDKVersion'
+            jdkVersionOption: '$(jdkVersion)'
+            mavenVersionOption: 'Default'
+            testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publicar Artefacto'
+          inputs:
+            PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+            ArtifactName: 'drop'
+            publishLocation: 'Container'
 
-  - stage: DeployToStaging
-    displayName: 'Deploy to Staging'
-    dependsOn: Test
-    jobs:
-      - job: DeployStagingJob
-        displayName: 'Desploy to Staging Job'
-        pool: 
-          vmImage: 'ubuntu-latest'
-        steps:
-          - script: |
-              echo "Buils staging job..."
-            displayName: 'Build and deploy to staging'
+#  - stage: Test
+#    displayName: 'Test Stage'
+#    dependsOn: Build
+#    isSkippable: false
+#    jobs:
+#    - job: TestJob
+#      displayName: 'Test Job'
+#      steps:
+#        - script: |
+#            echo "Running unit test..."
+#          displayName: 'Run unit tests'
 
-      - job: DeployStagingJobWithValidation
-        pool: server
-        timeoutInMinutes: 4320 
-        displayName: 'Deploy to Staging Job'
-        steps:
-          - task: ManualValidation@1
-            timeoutInMinutes: 1440
-            inputs:
-              notifyUsers: luisloa.7913@gmail.com
-              instructions: 'Por favor valida la etapa de configuración y resumen'
-              onTimeout: 'resume'
+#  - stage: DeployToStaging
+#    displayName: 'Deploy to Staging'
+#    dependsOn: Test
+#    jobs:
+#      - job: DeployStagingJob
+#        displayName: 'Desploy to Staging Job'
+#        pool: 
+#          vmImage: 'ubuntu-latest'
+#        steps:
+#          - script: |
+#              echo "Buils staging job..."
+#            displayName: 'Build and deploy to staging'
+
+#      - job: DeployStagingJobWithValidation
+#        pool: server
+#        timeoutInMinutes: 4320 
+#        displayName: 'Deploy to Staging Job'
+#        steps:
+#          - task: ManualValidation@1
+#            timeoutInMinutes: 1440
+#            inputs:
+#              notifyUsers: luisloa.7913@gmail.com
+#              instructions: 'Por favor valida la etapa de configuración y resumen'
+#              onTimeout: 'resume'
 
 
 
