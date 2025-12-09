@@ -12,6 +12,8 @@ pool:
 variables:
   mvnOpts: '-B -Dmaven.test.failure.ignore=false'
   jdkVersion: '1.17'
+  versionSpec: '17'
+  artifactName: 'drop'
 
 stages:
   - stage: Build
@@ -24,7 +26,7 @@ stages:
         - task: JavaToolInstaller@0
           displayName: 'Usar JDK 17 preinstalado'
           inputs:
-            versionSpec: '17'
+            versionSpec: '$(versionSpec)'
             jdkArchitectureOption: 'x64'
             jdkSourceOption: 'PreInstalled'
 
@@ -53,20 +55,56 @@ stages:
           displayName: 'Publicar Artefacto'
           inputs:
             pathToPublish: '$(System.DefaultWorkingDirectory)/target'
-            artifactName: 'drop'
+            artifactName: '$(artifactName)'
             publishLocation: 'Container'
 
-#  - stage: Test
-#    displayName: 'Test Stage'
-#    dependsOn: Build
-#    isSkippable: false
-#    jobs:
-#    - job: TestJob
-#      displayName: 'Test Job'
-#      steps:
-#        - script: |
-#            echo "Running unit test..."
-#          displayName: 'Run unit tests'
+  - stage: Test
+    displayName: 'Test'
+    dependsOn: Build
+    condition: succeeded()
+    isSkippable: false
+    jobs:
+    - job: TestJob
+      displayName: 'Test Job'
+      steps:
+        
+        - task: JavaToolInstaller@0
+          displayName: 'Usar JDK 17 preinstalado (Test)'
+          inputs:
+            versionSpec: '$(versionSpec)'
+            jdkArchitectureOption: x64
+            jdkSourceOption: PreInstalled
+        
+        # Descarga del artefacto
+        - task: DownloadBuildArtifacts@0
+          displayName: 'Descarga Artifact $(artifactName)'
+          inputs:
+            buildType: current
+            downloadType: single
+            artifactName: '$(artifactName)'
+            downloadPath: '$(System.DefaultWorkingDirectory)/_artifacts'
+        
+        # Ejecucion de pruebas y cobertura
+        - task: Maven@4
+          displayName: 'Pruebas + cobertura (verify)'
+          inputs:
+            mavenPomFile: 'pom.xml'
+            goals: 'clean verify'
+            options: '$(mvnOpts)'
+            publishJUnitResults: true
+            testResultsFiles: '**/surefire-reports/TEST-*.xml'
+            javaHomeOption: JDKVersion
+            jdkVersionOption: '$(jdkVersion)'
+            mavenVersionOption: Default
+        
+        # Publica reports de cobertura (HTML) generados por jacoco-maven-plugin
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publicar reporte de cobertura JaCoCo'
+          inputs:
+            pathToPublish: '$(System.DefaultWorkingDirectory)/target/site/jacoco'
+            artifactName: 'coverage'
+            publishLocation: 'Container'
+
 
 #  - stage: DeployToStaging
 #    displayName: 'Deploy to Staging'
