@@ -11,7 +11,7 @@ pool:
 
 variables:
   mvnOpts: '-B -Dmaven.test.failure.ignore=false'
-  jdkVersion: '17.0.17'
+  jdkVersion: '17'
 
 stages:
   - stage: Build
