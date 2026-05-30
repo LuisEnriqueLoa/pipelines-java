@@ -1,3 +1,4 @@
+[![Board Status](https://dev.azure.com/luisloa26/7802d8cb-ee79-460a-a699-cb451e37eab6/4ee0b77a-d3ee-4843-bb99-5d7cc6e84217/_apis/work/boardbadge/8bc89d2d-5d20-4111-b7aa-b6ab95f9880f)](https://dev.azure.com/luisloa26/7802d8cb-ee79-460a-a699-cb451e37eab6/_boards/board/t/4ee0b77a-d3ee-4843-bb99-5d7cc6e84217/Microsoft.RequirementCategory)
 [![Build Status](https://dev.azure.com/luisloa26/first-pipeline-java/_apis/build/status%2FLuisEnriqueLoa.pipelines-java%20(16)?branchName=main)](https://dev.azure.com/luisloa26/first-pipeline-java/_build/latest?definitionId=16&branchName=main)
 
 # Contributing
