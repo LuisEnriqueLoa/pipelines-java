@@ -1,0 +1,59 @@
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+  - name: scan_type
+    type: string
+    default: containerimage
+    values:
+      - containerimage
+      - dir
+
+steps:
+
+  - task: Bash@3
+    displayName: Validate Parameters
+    inputs:
+      targetType: inline
+      script: |
+        echo "scan_type=${{ parameters.scan_type }}"
+
+  - task: Wiz@1
+    displayName: Test Wiz Conditional Inputs
+    inputs:
+      serviceConnectionId: 'fake-service-connection'
+
+      command: scan
+
+      scanType: ${{ parameters.scan_type }}
+
+      applications: test-app
+
+      ${{ if eq(parameters.scan_type, 'containerimage') }}:
+        image: nginx:latest
+        scanName: nginx:latest
+
+      ${{ if eq(parameters.scan_type, 'dir') }}:
+        path: .
+        scanName: test-dir
+
+      byPolicyHits: DISABLED
+
+      tags: >
+        language=test,
+        version=1.0.0,
+        branch=develop
+
+      malwareScanner: true
+
+      humanOutputFile: wiz-human.txt
+
+      jsonOutputFile: wiz-report.json
+
+      sbomFormat: cyclonedx-json
+
+      sbomOutputFile: wiz-sbom.json
+
